@@ -44,6 +44,11 @@ new Yadda.FeatureFileSearch('./test/features').each(file => {
         afterEach(function() {  // IMPORTANT: needs the correct 'this'
             takeScreenshotOnFailure(this.currentTest, driver);
         });
+        afterEach(function() {  // IMPORTANT: needs the correct 'this'
+            if (process.env.SAUCE_USERNAME) {
+                informSauceLabsOfFailure(this.currentTest, driver);
+            }
+        });
 
         after(done => driver.quit().then(done));
     });
@@ -80,5 +85,12 @@ function takeScreenshotOnFailure(test, driver) {
         driver.takeScreenshot().then(function(data) {
             fs.writeFileSync(path, data, 'base64');
         });
+    }
+}
+
+function informSauceLabsOfFailure(test, driver) {
+    driver.reportError();
+    if (test.state != 'passed') {
+        driver.reportError();
     }
 }

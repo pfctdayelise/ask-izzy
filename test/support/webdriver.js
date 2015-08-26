@@ -3,6 +3,7 @@
 "use strict";
 
 import Webdriver from 'selenium-webdriver';
+import http from 'iso-http';
 
 export async function seleniumBrowser(driver: Webdriver.WebDriver): Object {
     var wnd = new Webdriver.WebDriver.Window(driver);
@@ -80,5 +81,34 @@ export default function webDriverInstance(): Webdriver.WebDriver {
         .build();
 
     driver.manage().timeouts().implicitlyWait(10000);
+
+    driver.reportError = function() {
+        if (!process.env.SAUCE_USERNAME) {
+            return;
+        }
+
+        var auth = process.env.SAUCE_AUTH_HEADER;
+        var path = `/rest/v1/ask_izzy/jobs/${driver.session_.value_.id_}`;
+        var url = `https://saucelabs.com${path}`;
+
+        var requestOptions = {
+            url: url,
+            method: 'PUT',
+            headers: {Authorization: "Basic " + auth},
+            data: JSON.stringify({passed: false}),
+        };
+        console.log(requestOptions);
+        try {
+
+        http.request(requestOptions, function(response) {
+            console.log(response);
+            console.log(arguments);
+        });
+        } catch (e) {
+            console.log("wut");
+            console.log(e);
+        }
+        console.log("ok then")
+    }
     return driver;
 }
