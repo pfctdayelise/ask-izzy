@@ -10,7 +10,7 @@ import _ from "underscore";
 import { slugify } from "underscore.string";
 
 import icons from "../icons";
-import * as iss from '../iss';
+import iss from '../iss';
 import OpeningTimes from "./OpeningTimes";
 import TransportTime from "./TransportTime";
 
@@ -27,8 +27,8 @@ class ResultListItem extends React.Component {
 
     // flow:disable not supported yet
     static propTypes = {
-        object: React.PropTypes.object.isRequired,
-        nRelatedServices: React.PropTypes.number,
+        object: React.PropTypes.instanceOf(iss.Service).isRequired,
+        nServiceProvisions: React.PropTypes.number,
     };
 
     // flow:disable not supported yet
@@ -36,7 +36,7 @@ class ResultListItem extends React.Component {
 
     // flow:disable
     static defaultProps =  {
-        nRelatedServices: 4,
+        nServiceProvisions: 4,
     };
 
     /**
@@ -46,32 +46,18 @@ class ResultListItem extends React.Component {
     /* flow:disable */
     get relatedServices(): Array<Object> {
         return this.state.relatedServices
-            .slice(0, this.props.nRelatedServices);
+            .slice(0, this.props.nServiceProvisions);
     }
 
     /**
-     * nMoreRelatedServices:
+     * nMoreServiceProvisions:
      * The number of related services minus the 4 relatedServices.
      */
     /* flow:disable */
-    get nMoreRelatedServices(): number {
+    get nMoreServiceProvisions(): number {
         return Math.max(0,
                         this.state.relatedServices.length -
-                            this.props.nRelatedServices);
-    }
-
-    componentDidMount(): void {
-        if (this.props.nRelatedServices > 0) {
-            /* request our sibling services */
-            iss.getSiteChildren(this.props.object.site.id)
-                .then(data => {
-                    /* remove ourselves */
-                    var relatedServices =
-                        _.reject(data.objects, service =>
-                                 service.id == this.props.object.id);
-                    this.setState({relatedServices: relatedServices});
-                });
-        }
+                            this.props.nServiceProvisions);
     }
 
     render(): React.Element {
@@ -101,18 +87,16 @@ class ResultListItem extends React.Component {
                 <div className="site_name">{object.site.name}</div>
                 <OpeningTimes className="opening_hours" object={object} />
                 <TransportTime object={object} />
-                { this.props.nRelatedServices > 0 ?
+                { this.props.nServiceProvisions > 0 ?
                     <div>
                     <ul className="related">{
-                        this.relatedServices.map((service, index) =>
-                            <li key={index}>{service.name}</li>
+                        object.serviceProvisions.map((service, index) =>
+                            <li key={index}>{service}</li>
                         )
                     }</ul>
-                    {this.nMoreRelatedServices > 0 ?
+                    {this.nMoreServiceProvisions > 0 ?
                         <div>
-                            {this.nMoreRelatedServices} more{' '}
-                            {this.nMoreRelatedServices == 1 ?
-                                'service' : 'services'}…
+                            {this.nMoreServiceProvisions} more…
                         </div>
                     :
                         ''
